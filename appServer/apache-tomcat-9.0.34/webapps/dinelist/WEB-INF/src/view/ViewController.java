@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import util.Constant;
 import util.Page;
 
 public class ViewController extends HttpServlet  {
@@ -20,7 +21,51 @@ public class ViewController extends HttpServlet  {
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		controller(request, response);
 		makeSamplePage(request, response);
+	}
+
+	public void controller(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// Preprocess
+		ViewGlobalIF vgIF = setupIFforLogic(request);
+		// Logic
+//		logic(vgIF);
+		//
+		forwardView(vgIF, request, response);
+	}
+
+	public void forwardView(ViewGlobalIF vgIF, HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		request.setAttribute("bean", vgIF);
+		String returnCode = vgIF.getReturnCode();
+		String destinationPage;
+		if (returnCode.contentEquals(Constant.CODE_NORMAL)) {
+			destinationPage = vgIF.getNormalView();
+		} else {
+			destinationPage = vgIF.getErrorView();
+		}
+		request.getRequestDispatcher(destinationPage).forward(request, response);
+	}
+
+	public ViewGlobalIF setupIFforLogic(HttpServletRequest request) {
+		ViewGlobalIF vgIF = convertRequestToViewGlobalIF(request);
+		vgIF = fetchProcessID(vgIF);
+		return vgIF;
+	}
+
+	/**
+	 *
+	 * @param request
+	 * @return
+	 */
+	public ViewGlobalIF convertRequestToViewGlobalIF(HttpServletRequest request) {
+		ViewGlobalIF vgIF = new ViewGlobalIF(request);
+		return vgIF;
+	}
+
+	public ViewGlobalIF fetchProcessID(ViewGlobalIF vgIF) {
+		return vgIF;
 	}
 
 	/**
@@ -34,60 +79,53 @@ public class ViewController extends HttpServlet  {
 			throws ServletException, IOException {
 		response.setContentType("text/html; charset=UTF-8");
 		PrintWriter out = response.getWriter();
-
 		Page.header(out, "SAMPLE SERVLET");
-
 		// Request Parameter
 	    out.println("■REQUEST PARAMETER<br>");
 		Enumeration<String> paramNames = request.getParameterNames();
 		while (paramNames.hasMoreElements()) {
-		    // パラメータ名を取得
-		    String paramName = (String)paramNames.nextElement();
-		    out.print(paramName);
-		    out.print("=");
+			// パラメータ名を取得
+			String paramName = (String)paramNames.nextElement();
+			out.print(paramName);
+			out.print("=");
 
-		    // パラメータ値を取得
-		    String[] paramValues = request.getParameterValues(paramName);
-		    for (int i = 0; i < paramValues.length; i++) {
-		        if(i > 0){
-		            out.print(",");
-		        }
-		        out.println(paramValues[i] + "<br>");
-		    }
+			// パラメータ値を取得
+			String[] paramValues = request.getParameterValues(paramName);
+			for (int i = 0; i < paramValues.length; i++) {
+				if(i > 0){
+					out.print(",");
+				} else {
+					// DO NOTHING
+				}
+				out.println(paramValues[i] + "<br>");
+			}
 		}
 
 		//Request Header
 	    out.println("■REQUEST HEADER<br>");
 		Enumeration<String> headerNames = request.getHeaderNames();
 		while (headerNames.hasMoreElements()) {
-
-		    // ヘッダ名と値を取得
-		    String headerName = (String)headerNames.nextElement();
-		    String headerValue = request.getHeader(headerName);
-
-		    out.print(headerName);
-		    out.print("=");
-		    out.print(headerValue);
-		    out.println("<br>");
+			// ヘッダ名と値を取得
+			String headerName = (String)headerNames.nextElement();
+			String headerValue = request.getHeader(headerName);
+			out.print(headerName);
+			out.print("=");
+			out.print(headerValue);
+			out.println("<br>");
 		}
 
 		//Request Header
-	    out.println("■ATTRIBUTES<br>");
+		out.println("■ATTRIBUTES<br>");
 		Enumeration<String> attrNames = request.getHeaderNames();
 		while (attrNames.hasMoreElements()) {
-		    // ヘッダ名と値を取得
-		    String attrName = (String)attrNames.nextElement();
-		    Object attrValue = request.getAttribute(attrName);
-
-		    out.print(attrName);
-		    out.print("=");
-		    out.print(attrValue);
-		    out.println("<br>");
+			// 属性名と値を取得
+			String attrName = (String)attrNames.nextElement();
+			Object attrValue = request.getAttribute(attrName);
+			out.print(attrName);
+			out.print("=");
+			out.print(attrValue);
+			out.println("<br>");
 		}
-		//		    out.println(request.get + "<br>");
-//		out.println(request.getServletPath() + "<br>");
-//		out.println("Request Destination: " + request.getRequestURI() + "<br>");
-//		out.println(new java.util.Date() + "<br>");
 		Page.footer(out);
 	}
 }

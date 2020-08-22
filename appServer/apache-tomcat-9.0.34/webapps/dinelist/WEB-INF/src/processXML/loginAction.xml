@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+  <item>login</item>
+  <item>password</item>
+</input>
+<output>
+  <item>returnCode</item>
+</output>
+<process>
+  <step>userAuthorization</step>
+</process>
+
+
